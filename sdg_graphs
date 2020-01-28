@@ -1,0 +1,211 @@
+####################################################################
+#Objective: creating figures using systematic literature review data
+
+#Author: Asif Ishtiaque (University of Michigan)
+
+#Note: For the files, contact: asis@umich.edu
+#####################################################################
+
+#Importing libraries
+library (readxl)
+library (dplyr)
+library (ggplot2)
+library (gridExtra)
+library (RColorBrewer)
+library (forcats)
+
+#Setting working directories
+setwd("Z:/Asif/SDG")
+
+#######################################
+#Research frequency and journal (Fig 3 & 4)
+#######################################
+
+######Research Frequency
+
+data <- read_excel("Final_list.xlsx", sheet = "Sheet1")
+names (data)
+
+#Grouping the number of studies based on year of publication
+data_1 <- data %>% group_by(Year) %>% mutate (year_n = n())
+head(data_1)
+
+#Getting yearly number of published articles 
+a <- data_1 %>% count(Year)
+
+#We manually created a column named 'Study_Section' that represents the research area.
+#Getting yearly number of published articles based on research area 
+b <- data_1 %>% filter(Study_Section == "Forest") %>% count(Year) 
+c <- data_1 %>% filter(Study_Section == "Wetland") %>% count(Year) 
+d <- data_1 %>% filter(Study_Section == "Land Degradation") %>% count(Year) 
+
+#Merging all sub-datasets
+merged <- a %>% full_join(b, by = 'Year') %>% full_join(c, by = "Year") %>% full_join(d, by = 'Year')
+
+#Creating a dataframe to create graphs
+research_freq <- data.frame(Year = merged$Year,
+                  total = merged$n.x,
+                  forest = merged$n.y,
+                  wetland = merged$n.x.x,
+                  land = merged$n.y.y)
+
+research_freq
+
+#Creating graphs
+ggplot_total <- ggplot (research_freq, aes(x = Year, y = total)) + geom_point() +
+  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
+  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
+  labs (title = "Total", tag = "A") + theme (axis.title = element_text(size = 10))
+
+
+ggplot_forest <- ggplot (research_freq, aes(x = Year, y = forest)) + geom_point() +
+  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
+  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
+  labs (title = "Forest", tag = "B") + theme (axis.title = element_text(size = 10))
+
+
+ggplot_wetland <- ggplot (research_freq, aes(x = Year, y = wetland)) + geom_point() +
+  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
+  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
+  labs (title = "Wetland", tag = "C")  + theme (axis.title = element_text(size = 10))
+
+
+ggplot_land <- ggplot (research_freq, aes(x = Year, y = land)) + geom_point() +
+  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
+  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
+  labs (title = "Land Degradation", tag = "D") + theme (axis.title = element_text(size = 10))
+
+#Putting all graphs into one
+grid.arrange(ggplot_total, ggplot_forest, ggplot_wetland, ggplot_land, ncol = 2)
+
+
+######Journals:
+
+#We manually created a column indicating the type of the journal (i.e. interdisciplinary, subject-specific)
+#Getting the number of published articles based on the type
+jour <- data %>% group_by (Journal_type) %>% count(Journal, sort = T)
+
+#Creating dataframe
+journal <- data.frame(Type = jour$Journal_type,
+                      Name = jour$Journal,
+                      Count = jour$n)
+
+#Creating graphs
+ggplot_journal <- ggplot (journal, aes(x = reorder(Name, Count), y = Count, fill = "9BC2F5")) + 
+  geom_bar(stat="identity", width = 0.75) +
+  coord_flip() + scale_x_discrete(name = "Journal") + 
+  scale_y_discrete(name = "Number of published articles", limits = c(0,1,2,3), expand = c(0,0)) +
+  scale_fill_manual(values = "#8A96A5") +
+  theme (panel.grid = element_blank(), legend.position = "none") 
+
+ggplot_journal 
+
+
+#########################
+#Forest loss (Fig 5 & 6)
+#########################
+
+data_2 <- read_excel("Final_list.xlsx", sheet = "Forest_loss")
+
+#Creating graph (Fig 5)
+forest_loss <- ggplot(data_2, aes (x = change, y = reorder (ref, -change))) + 
+  geom_point(aes(color = factor(area)), size = 4) + 
+  scale_color_brewer(palette = "Set1") + geom_vline(xintercept = 0, linetype = "dotted", size = 1.0) +
+  scale_x_continuous(name = "Annual deforestation/afforestation rate of forest (in %)", 
+                     breaks = seq(-5,2, by = 0.5), limits = c(-4.2, 1),
+                     expand = c(0,0)) + scale_y_discrete(name = "Reference Studies") + 
+  labs (color = "Study Area: ") + theme (legend.position = "bottom", legend.key = element_rect(fill = "white"),
+                                         panel.grid.major.x = element_blank()) +
+  geom_text (x = -1, y = 7.2, label = "Forest Loss", color = "darkred", size = 4.5) +
+  geom_text (x = 0.5, y = 7.2, label = "Forest Gain", color = "darkgreen", size = 4.5) +
+  theme (panel.background = element_rect(fill = "white", color = "grey"),
+         panel.grid.major.x = element_line(color = "#E5E7E9", linetype = "longdash"),
+         panel.grid.major.y = element_line(color = "#E5E7E9", linetype = "longdash"))
+
+forest_loss
+
+#Creating graph (Fig 6)
+data_3 <- read_excel("Final_list.xlsx", sheet = "Forest_accuracy")
+
+forest_accuracy <- ggplot (data_3, aes(x = Sensor)) + 
+  geom_linerange(aes (ymin = Min, ymax = Max), linetype = 2, color = 'blue') +
+  geom_point (aes(y = Min), size = 2, color = 'red') +
+  geom_point (aes(y = Max), size = 2, color = 'red') + theme_bw() +
+  scale_y_continuous(name = "Overall Accuracy (in %)", breaks = seq(70,100, by = 5), 
+                     limits = c(70,100), expand = c(0,0)) +
+  labs (x = "\nSatellite Sensor\n", tag = "A")
+
+forest_accuracy  
+
+data_4 <- read_excel("Final_list.xlsx", sheet = "class_accuracy")  
+
+class_accuracy <- ggplot (data_4, aes (x = Classification)) + 
+  geom_linerange(aes (ymin = class_min, ymax = class_max), linetype = 2, color = 'red') +
+  geom_point (aes(y = class_min), size = 2, color = 'blue') +
+  geom_point (aes(y = class_max), size = 2, color = 'blue') + theme_bw() +
+  scale_y_continuous(name = "Overall Accuracy (in %)", breaks = seq(70,100, by = 5), 
+                     limits = c(70,100), expand = c(0,0)) +
+  labs (x = "\nClassification Approach", tag = "B")
+class_accuracy 
+
+#Getting the two graphs together
+grid.arrange(forest_accuracy,class_accuracy, nrow =2)
+
+##################
+#Wetland (Fig. 7)
+##################
+w <- read_excel("Final_list.xlsx", sheet = "wet_graph")
+names(w)
+
+w_graph <- ggplot (w, aes(x = Year)) + 
+  geom_point(aes(y = D), color = "#2980B9") + 
+  geom_line(data = w[!is.na(w$D),], aes (y = D), color = "#2980B9", linetype = "longdash") +
+  geom_point(aes(y = M), color = "#C0392B") + 
+  geom_line(data = w[!is.na(w$M),], aes (y = M), color = "#C0392B", linetype = "dashed") +
+  geom_point(aes(y = H), color = "#229954") + 
+  geom_line(data = w[!is.na(w$H),], aes (y = H), color = "#229954", linetype = "twodash") +
+  scale_x_continuous(breaks = seq (1960, 2015, by = 5)) +
+  scale_y_continuous(breaks = seq (5000, 14000, by = 1000), limits = c(5000, 14000),
+                     expand = c(0,0)) +
+  labs (y = "Wetlands (in hectares)") + theme_bw () + theme (panel.grid.minor = element_blank())
+
+w_graph 
+
+######################
+#Erosion (Fig. 9)
+######################
+#classification accuracy
+e <- read_excel("Final_list.xlsx", sheet = "eroson_estimate")
+names(e)
+e1 <- subset (e, select = c("Study", "Location", "X")) 
+
+erosion_graph <- ggplot (e1, aes (x = as.factor(fct_inorder(Location)), y = X, fill = Study)) + 
+  geom_bar(position = "dodge", stat = "identity", width = 0.75) +
+  scale_y_continuous(breaks = seq(-10,15, by = 2)) +
+  geom_hline(yintercept = 0, linetype = "dotted", size = 1.0) +
+  scale_fill_brewer(palette = "Set3") + labs (x = "\nGeographical Location", tag = "B",
+                                              y = bquote("Net Erosion/Accretion Rate "~ (km^2/year)), fill = "Reference Study") +
+  theme (legend.position = "bottom", panel.background = element_rect(fill = "white", color = "grey"),
+         panel.grid.major = element_line(color = "#E5E7E9", linetype = "longdash")) +
+  geom_text (x = 0.7, y = -3, label = "Erosion", color = "#B03A2E", size = 4.5) +
+  geom_text (x = 0.7, y = 3, label = "Accretion", color = "#2471A3", size = 4.5)
+
+erosion_graph
+
+#location based erosion/accretion rate
+e2 <- na.omit(subset (e, select = c("Area", "Min", "Max")))
+
+e_graph <- ggplot (e2, aes (x = as.factor(fct_inorder(Area)))) + 
+  geom_linerange(aes (ymin = Min, ymax = Max), linetype = 2, color = '#D35400', size = 0.7) +
+  geom_point (aes(y = Min), size = 2, color = '#229954') +
+  geom_point (aes(y = Max), size = 2, color = '#229954') +
+  scale_y_continuous(breaks = seq(-10,15, by = 2)) + 
+  labs (x = " ", y = bquote("Net Erosion/Accretion Rate "~ (km^2/year)), tag = "A") +
+  geom_hline(yintercept = 0, linetype = "dotted", size = 1.0, color = "#A6ACAF") +
+  geom_text (x = 0.7, y = -3, label = "Erosion", color = "#B03A2E", size = 4.5) +
+  geom_text (x = 0.7, y = 3, label = "Accretion", color = "#2471A3", size = 4.5) +
+  theme (panel.background = element_rect(fill = "white", color = "grey"),
+         panel.grid.major.y = element_line(color = "#F2F3F4", linetype = "longdash")) 
+
+e_graph
+
