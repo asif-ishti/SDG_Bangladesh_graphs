@@ -52,28 +52,33 @@ research_freq <- data.frame(Year = merged$Year,
 research_freq
 
 #Creating graphs
-ggplot_total <- ggplot (research_freq, aes(x = Year, y = total)) + geom_point() +
+ggplot_total <- ggplot (research_freq, aes(x = Year, y = total)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Total", tag = "A") + theme (axis.title = element_text(size = 10))
+  labs (title = "Total", tag = "A") + theme (axis.title = element_text(size = 10)) +
+  geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
 
 
-ggplot_forest <- ggplot (research_freq, aes(x = Year, y = forest)) + geom_point() +
+ggplot_forest <- ggplot (research_freq, aes(x = Year, y = forest)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Forest", tag = "B") + theme (axis.title = element_text(size = 10))
+  labs (title = "Forest", tag = "B") + theme (axis.title = element_text(size = 10)) +
+  geom_smooth(method="loess", se=F, fullrange=F, level=0.95) +
+  
 
 
-ggplot_wetland <- ggplot (research_freq, aes(x = Year, y = wetland)) + geom_point() +
+ggplot_wetland <- ggplot (research_freq, aes(x = Year, y = wetland)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Wetland", tag = "C")  + theme (axis.title = element_text(size = 10))
+  labs (title = "Wetland", tag = "C")  + theme (axis.title = element_text(size = 10)) +
+  geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
 
 
-ggplot_land <- ggplot (research_freq, aes(x = Year, y = land)) + geom_point() +
+ggplot_land <- ggplot (research_freq, aes(x = Year, y = land)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Land Degradation", tag = "D") + theme (axis.title = element_text(size = 10))
+  labs (title = "Land Degradation", tag = "D") + theme (axis.title = element_text(size = 10)) +
+  geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
 
 #Putting all graphs into one
 grid.arrange(ggplot_total, ggplot_forest, ggplot_wetland, ggplot_land, ncol = 2)
