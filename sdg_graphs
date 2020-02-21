@@ -1,10 +1,14 @@
-####################################################################
-#Objective: creating figures using systematic literature review data
+#########################################################
+#Objective: creating figures using literature review data
+#for the paper entitled "Remote Sensing-Based Research for 
+#Monitoring Progress towards SDG 15 in Bangladesh: A Review"
+
+#Available here: https://www.mdpi.com/2072-4292/12/4/691
 
 #Author: Asif Ishtiaque (University of Michigan)
 
 #Note: For the files, contact: asis@umich.edu
-#####################################################################
+#########################################################
 
 #Importing libraries
 library (readxl)
@@ -17,11 +21,11 @@ library (forcats)
 #Setting working directories
 setwd("Z:/Asif/SDG")
 
-#######################################
+##########################################
 #Research frequency and journal (Fig 3 & 4)
-#######################################
+##########################################
 
-######Research Frequency
+######Research Frequency (Fig. 3)
 
 data <- read_excel("Final_list.xlsx", sheet = "Sheet1")
 names (data)
@@ -52,6 +56,7 @@ research_freq <- data.frame(Year = merged$Year,
 research_freq
 
 #Creating graphs
+
 ggplot_total <- ggplot (research_freq, aes(x = Year, y = total)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
@@ -59,32 +64,46 @@ ggplot_total <- ggplot (research_freq, aes(x = Year, y = total)) + geom_point(si
   geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
 
 
+ggplot_land <- ggplot (research_freq, aes(x = Year, y = land)) + geom_point(size = 2.5) +
+  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
+  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
+  labs (title = "Land Degradation", tag = "B") + theme (axis.title = element_text(size = 10)) +
+  geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
+
+
 ggplot_forest <- ggplot (research_freq, aes(x = Year, y = forest)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Forest", tag = "B") + theme (axis.title = element_text(size = 10)) +
-  geom_smooth(method="loess", se=F, fullrange=F, level=0.95) +
+  labs (title = "Forest", tag = "C") + theme (axis.title = element_text(size = 10)) +
+  geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
   
-
 
 ggplot_wetland <- ggplot (research_freq, aes(x = Year, y = wetland)) + geom_point(size = 2.5) +
   scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
   scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Wetland", tag = "C")  + theme (axis.title = element_text(size = 10)) +
+  labs (title = "Wetland", tag = "D")  + theme (axis.title = element_text(size = 10)) +
   geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
 
-
-ggplot_land <- ggplot (research_freq, aes(x = Year, y = land)) + geom_point(size = 2.5) +
-  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
-  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
-  labs (title = "Land Degradation", tag = "D") + theme (axis.title = element_text(size = 10)) +
-  geom_smooth(method="loess", se=F, fullrange=F, level=0.95)
 
 #Putting all graphs into one
-grid.arrange(ggplot_total, ggplot_forest, ggplot_wetland, ggplot_land, ncol = 2)
+grid.arrange(ggplot_total, ggplot_land, ggplot_forest, ggplot_wetland, ncol = 2)
 
 
-######Journals:
+###Extra information:
+#If you want to draw line though the points using spline interpolation method,
+#instead of trendlines, follow the following codes.
+#These codes were not used to create graphs in this study.
+
+spline_tot <- as.data.frame(spline(research_freq$Year, research_freq$total))
+
+ggplot_total <- ggplot (research_freq, aes(x = Year, y = total)) + geom_point(size = 2.5) +
+  scale_x_continuous(name = "Year", breaks = seq(2000,2019,by = 2), limits = c(2000,2019)) +
+  scale_y_continuous(name = "Number of published articles", breaks = seq(0,12,by = 1), limits = c(0,12)) +
+  labs (title = "Total", tag = "A") + theme (axis.title = element_text(size = 10)) +
+  geom_line (data = spline_tot, aes (x = x, y = y)) +
+
+
+######Journals (Fig. 4)
 
 #We manually created a column indicating the type of the journal (i.e. interdisciplinary, subject-specific)
 #Getting the number of published articles based on the type
@@ -162,24 +181,30 @@ grid.arrange(forest_accuracy,class_accuracy, nrow =2)
 w <- read_excel("Final_list.xlsx", sheet = "wet_graph")
 names(w)
 
+spline_wd <- as.data.frame (spline(w$Year, w$D))
+spline_wm <- as.data.frame (spline(w$Year, w$M))
+spline_wh <- as.data.frame (spline(w$Year, w$H))
+
 w_graph <- ggplot (w, aes(x = Year)) + 
-  geom_point(aes(y = D), color = "#2980B9") + 
-  geom_line(data = w[!is.na(w$D),], aes (y = D), color = "#2980B9", linetype = "longdash") +
-  geom_point(aes(y = M), color = "#C0392B") + 
-  geom_line(data = w[!is.na(w$M),], aes (y = M), color = "#C0392B", linetype = "dashed") +
-  geom_point(aes(y = H), color = "#229954") + 
-  geom_line(data = w[!is.na(w$H),], aes (y = H), color = "#229954", linetype = "twodash") +
+  geom_point(aes(y = D), color = "#2980B9", size = 2) + 
+  geom_line(data = w[!is.na(w$D),], aes (y = D), color = "#2980B9", linetype = "longdash", size = 0.8) +
+  geom_point(aes(y = M), color = "#C0392B", size = 2) + 
+  geom_line(data = w[!is.na(w$M),], aes (y = M), color = "#C0392B", linetype = "dashed", size = 0.8) +
+  geom_point(aes(y = H), color = "#229954", size = 2) + 
+  geom_line(data = w[!is.na(w$H),], aes (y = H), color = "#229954", linetype = "twodash", size = 0.8) +
   scale_x_continuous(breaks = seq (1960, 2015, by = 5)) +
-  scale_y_continuous(breaks = seq (5000, 14000, by = 1000), limits = c(5000, 14000),
+  scale_y_continuous(breaks = seq (2000, 14000, by = 1000), limits = c(4000, 14000),
                      expand = c(0,0)) +
   labs (y = "Wetlands (in hectares)") + theme_bw () + theme (panel.grid.minor = element_blank())
 
 w_graph 
 
+#Fig. 8 is similar to Fig. 6
+
 ######################
 #Erosion (Fig. 9)
 ######################
-#classification accuracy
+#location based erosion/accretion rate
 e <- read_excel("Final_list.xlsx", sheet = "eroson_estimate")
 names(e)
 e1 <- subset (e, select = c("Study", "Location", "X")) 
@@ -197,7 +222,7 @@ erosion_graph <- ggplot (e1, aes (x = as.factor(fct_inorder(Location)), y = X, f
 
 erosion_graph
 
-#location based erosion/accretion rate
+#classification accuracy
 e2 <- na.omit(subset (e, select = c("Area", "Min", "Max")))
 
 e_graph <- ggplot (e2, aes (x = as.factor(fct_inorder(Area)))) + 
@@ -213,4 +238,3 @@ e_graph <- ggplot (e2, aes (x = as.factor(fct_inorder(Area)))) +
          panel.grid.major.y = element_line(color = "#F2F3F4", linetype = "longdash")) 
 
 e_graph
-
